@@ -1,0 +1,381 @@
+--mysql 学习笔记
+
+关系型数据库
+	
+1： 如何使用终端操作数据库
+	1：如何登陆数据库服务器 
+		\connect --mysql root@localhost:3305;
+	2:如何查询数据库服务器中所有数据
+		show databases;(注意要有分号)
+
+		+--------------------+
+		| Database           |
+		+--------------------+
+		| information_schema |
+		| mysql              |
+		| performance_schema |
+		| sakila             |
+		| sys                |
+		| world              |
+		+--------------------+
+	3：如何选中一个数据库进行操作
+		mysql> use sys
+		Database changedmys
+
+	1: 如何在数据库中创建我们数据库
+		mysql> create database test;
+		Query OK, 1 row affected (0.00 sec)
+	2: 如何创建一个数据表
+		mysql> CREATE TABLE pet(
+		    -> name VARCHAR(20)，      
+		    -> owner VARCHAR(20)，    //VARCHAR AND DATA 是一种变量
+		    -> spieces VARCHAR(20)，
+		    -> sex CHAR(1)，
+		    -> birth DATA，
+		    -> death DATA);
+	3：如何查看数据库中所有数据表
+		mysql> show tables;
+		+----------------+
+		| Tables_in_test |
+		+----------------+
+		| pet            |
+		+----------------+
+		1 row in set (0.00 sec)
+	4： 如何查看数据表结构
+		mysql> describe pet;
+		+---------+-------------+------+-----+---------+-------+
+		| Field   | Type        | Null | Key | Default | Extra |
+		+---------+-------------+------+-----+---------+-------+
+		| name    | varchar(20) | YES  |     | NULL    |       |
+		| owner   | varchar(20) | YES  |     | NULL    |       |
+		| spieces | varchar(20) | YES  |     | NULL    |       |
+		| sex     | char(1)     | YES  |     | NULL    |       |
+		| birth   | date        | YES  |     | NULL    |       |
+		| death   | date        | YES  |     | NULL    |       |
+		+---------+-------------+------+-----+---------+-------+
+		6 rows in set (0.01 sec)
+	5： 查看表中记录
+		mysql> select * from pet;
+		Empty set (0.00 sec)
+	（发现现在为空）
+	6: 如何往表中添加记录
+		mysql> INSERT INTO pet
+		    -> VALUES(
+		    -> 'puffball',
+		    -> 'hanser',
+		    -> 'hamster',
+		    -> 'f',
+		    -> '1999-03-30',
+		    -> NULL);
+		Query OK, 1 row affected (0.00 sec)
+		然后再次查询
+			mysql> select * from pet;
+			+----------+--------+---------+------+------------+-------+
+			| name     | owner  | spieces | sex  | birth      | death |
+			+----------+--------+---------+------+------------+-------+
+			| puffball | hanser | hamster | f    | 1999-03-30 | NULL  |
+			+----------+--------+---------+------+------------+-------+
+			1 row in set (0.00 sec)
+
+		中间可能会遇到输入中文报错的情况，详情请参考以下网页：
+			https://blog.csdn.net/u011541946/article/details/78868695
+	7： mysql常用数据类型有哪些
+		数值，日期/时间，字符串等.
+		https://www.runoob.com/mysql/mysql-data-types.html
+
+		数据类型如何选择
+			日期 按照格式选择
+			数值和字符串按照大小
+	8： 如何删除数据
+		mysql> delete from pet where name='旺财';
+		Query OK, 1 row affected (0.00 sec)
+
+	删除之前：
+		+----------+--------+---------+------+------------+-------+
+		| name     | owner  | spieces | sex  | birth      | death |
+		+----------+--------+---------+------+------------+-------+
+		| puffball | hanser | hamster | f    | 1999-03-30 | NULL  |
+		| 旺财     | yousa  | dog     | m    | 2019-12-23 | NULL  |
+		| Fully    | harold | cat     | f    | 1993-02-03 | NULL  |
+		| claws    | gwen   | cat     | m    | 1994-03-17 | NULL  |
+		| fang     | Benny  | dog     | f    | 1998-03-12 | NULL  |
+		+----------+--------+---------+------+------------+-------+
+	执行之后：
+		+----------+--------+---------+------+------------+-------+
+		| name     | owner  | spieces | sex  | birth      | death |
+		+----------+--------+---------+------+------------+-------+
+		| puffball | hanser | hamster | f    | 1999-03-30 | NULL  |
+		| Fully    | harold | cat     | f    | 1993-02-03 | NULL  |
+		| claws    | gwen   | cat     | m    | 1994-03-17 | NULL  |
+		| fang     | Benny  | dog     | f    | 1998-03-12 | NULL  |
+		+----------+--------+---------+------+------------+-------+
+	
+	9： 如何修改数据
+	Query OK, 1 row affected (0.00 sec)
+	Rows matched: 1  Changed: 1  Warnings: 0
+	执行后
+		+----------+--------+---------+------+------------+-------+
+		| name     | owner  | spieces | sex  | birth      | death |
+		+----------+--------+---------+------+------------+-------+
+		| puffball | hanser | hamster | f    | 1999-03-30 | NULL  |
+		| Fully    | harold | cat     | f    | 1993-02-03 | NULL  |
+		| fully    | gwen   | cat     | m    | 1994-03-17 | NULL  |
+		| fang     | Benny  | dog     | f    | 1998-03-12 | NULL  |
+		+----------+--------+---------+------+------------+-------+
+	小结：数据记录常见操作
+		增加 ： insert
+		删除 :  delete
+		修改 ： update
+		查询 ： select
+
+
+-------- mysql建表约束
+	1： 主建约束
+		它能够唯一确定一张表中的一条记录，也就是说我么通过给某个字段添加约束，就可就可以使得该字段不重复不为空
+		举例：第一次添加数据
+				insert into user values(1, 'hanser');
+				Query OK, 1 row affected (0.00 sec)	
+		      第二次添加同样数据
+				mysql> insert into user values(1, 'hanser');
+				ERROR 1062 (23000): Duplicate entry '1' for key 'PRIMAR
+		      应该为
+				insert into user valuse(2, 'hanser')
+		并且不能为null
+
+	联合主键：
+		 create table user2(
+		    -> id int,
+		    -> name varchar(20),
+		    -> password varchar(20),
+		    -> primary key(id, name)
+		    -> );
+	
+	联合主键要求联合部分不能完全重复， 且任意字段部分不能为空
+
+	2： 外键约束
+		外键约束设计到两个表 主表 副表
+		create table classes(
+		    -> id int primary key,
+		    -> name varchar(20));
+		Query OK, 0 rows affected (0.03 sec)
+
+		mysql> create table student(
+		    -> id int primary key,
+		    -> name varchar(20),
+		    -> class_id int,
+		    -> foreign key(class_id) references classes(id));
+		Query OK, 0 rows affected (0.03 sec)
+
+		mysql> desc classes;
+		+-------+-------------+------+-----+---------+-------+
+		| Field | Type        | Null | Key | Default | Extra |
+		+-------+-------------+------+-----+---------+-------+
+		| id    | int(11)     | NO   | PRI | NULL    |       |
+		| name  | varchar(20) | YES  |     | NULL    |       |
+		+-------+-------------+------+-----+---------+-------+
+		2 rows in set (0.00 sec)
+		
+		mysql> desc student;
+		+----------+-------------+------+-----+---------+-------+
+		| Field    | Type        | Null | Key | Default | Extra |
+		+----------+-------------+------+-----+---------+-------+
+		| id       | int(11)     | NO   | PRI | NULL    |       |
+		| name     | varchar(20) | YES  |     | NULL    |       |
+		| class_id | int(11)     | YES  | MUL | NULL    |       |
+		+----------+-------------+------+-----+---------+-------+
+			
+		可以看到key这一列变成了mul
+		
+		那么它具体由什么用呢？
+		
+		我们先在classes表中插入数据
+		 insert into classes values(1, 'class_one');
+		Query OK, 1 row affected (0.00 sec)
+
+		mysql> insert into classes values(2, 'class_two');
+		Query OK, 1 row affected (0.00 sec)
+		
+		mysql> insert into classes values(3, 'class_three');
+		Query OK, 1 row affected (0.00 sec)
+		
+		mysql> insert into classes values(4, 'class_four');
+		Query OK, 1 row affected (0.00 sec)
+
+		插入完成后显示以下
+
+		mysql> select *from classes;
+		+----+-------------+
+		| id | name        |
+		+----+-------------+
+		|  1 | class_one   |
+		|  2 | class_two   |
+		|  3 | class_three |
+		|  4 | class_four  |
+		+----+-------------+
+
+		然后尝试往第二表个插入数据
+		mysql> insert into student values(1001, 'hanser', 1);
+		Query OK, 1 row affected (0.00 sec)
+
+		mysql> insert into student values(1002, 'marblue', 2);
+		Query OK, 1 row affected (0.00 sec)
+	
+		mysql> insert into student values(1003, 'yousa', 3);
+		Query OK, 1 row affected (0.00 sec)
+
+		mysql> insert into student values(1004, 'warrm', 4);
+		Query OK, 1 row affected (0.00 sec)
+
+		mysql> insert into student values(1005, 'zhangsan', 5);
+		ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint 		fails (`test`.`student`, CONSTRAINT `student_ibfk_1` FOREIGN KEY (`class_id`) 		REFERENCES `classes` (`id`))
+
+		然后我们发现第五个的时候报错了
+		因为 5 不在class中
+		主表中没有的数据在副表中是不可以使用的
+
+	3:  非空约束
+		表示修饰的字段不能为空， 不影响其它部分
+		rows in set (0.00 sec)
+
+		mysql> create table user6(
+		    -> id int,
+		    -> name varchar(20) not null);
+		Query OK, 0 rows affected (0.03 sec)
+	
+		mysql> desc user6
+		    -> ;
+		+-------+-------------+------+-----+---------+-------+
+		| Field | Type        | Null | Key | Default | Extra |
+		+-------+-------------+------+-----+---------+-------+
+		| id    | int(11)     | YES  |     | NULL    |       |
+		| name  | varchar(20) | NO   |     | NULL    |       |
+		+-------+-------------+------+-----+---------+-------+
+		null这一列变成了no 表示不可为空
+		其它alter方法也可以用
+
+	4： 默认约束
+		 create table user7(
+		    -> id int,
+		    -> name varchar(20),
+		    -> age int default 10);
+		Query OK, 0 rows affected (0.03 sec)
+		
+		mysql> desc user7;
+		+-------+-------------+------+-----+---------+-------+
+		| Field | Type        | Null | Key | Default | Extra |
+		+-------+-------------+------+-----+---------+-------+
+		| id    | int(11)     | YES  |     | NULL    |       |
+		| name  | varchar(20) | YES  |     | NULL    |       |
+		| age   | int(11)     | YES  |     | 10      |       |
+		+-------+-------------+------+-----+---------+-------+
+		3 rows in set (0.00 sec)
+		
+		可以看到default这一列变成了 10
+		alter方法照样也是所有可用
+
+	5： 唯一约束  表示修饰的字段不可以重复
+		创建：
+		create table user5(
+		    -> id int,
+		    -> name varchar(20));
+		Query OK, 0 rows affected (0.03 sec)
+		
+		mysql> alter table user5 add unique(name);  //添加唯一约束
+		Query OK, 0 rows affected (0.02 sec)
+		Records: 0  Duplicates: 0  Warnings: 0
+		
+		mysql> desc user5;
+		+-------+-------------+------+-----+---------+-------+
+		| Field | Type        | Null | Key | Default | Extra |
+		+-------+-------------+------+-----+---------+-------+
+		| id    | int(11)     | YES  |     | NULL    |       |
+		| name  | varchar(20) | YES  | UNI | NULL    |       |
+		+-------+-------------+------+-----+---------+-------+
+		2 rows in set (0.00 sec)
+
+		表示name不可以重复
+
+		也可以
+		create table user5(
+		    -> id int,
+		    -> name varchar(20)
+		    -> unique(name));
+
+		或者
+		create table user5(
+		    -> id int,
+		    -> name varchar(20) unique);
+
+	6： 自增约束
+		创建表
+		create table user3(
+		    -> id int primary key auto_increment,
+		    -> name varchar(20));
+		Query OK, 0 rows affected (0.03 sec)
+	然后进行操作
+		 insert into user3 values(
+		    -> 'zhangan');
+		Query OK, 1 row affected (0.00 sec)
+		并没有传入id， 但是成功了，这个自增约束和主键约束加在一起可以帮帮我们管控字段
+	如果我们创建表的时候忘记创建主键约束该怎么办
+	
+	这里创建一个表
+	 desc user4;
+	+-------+-------------+------+-----+---------+-------+
+	| Field | Type        | Null | Key | Default | Extra |
+	+-------+-------------+------+-----+---------+-------+
+	| id    | int(11)     | YES  |     | NULL    |       |
+	| name  | varchar(20) | YES  |     | NULL    |       |
+	+-------+-------------+------+-----+---------+-------+
+	可以看到key里边并没有任何东西， 然后我们进行下边操作
+		alter table user4 add primary key(id);
+		Query OK, 0 rows affected (0.06 sec)
+		Records: 0  Duplicates: 0  Warnings: 0
+
+		mysql> desc user4
+		    -> ;
+		+-------+-------------+------+-----+---------+-------+
+		| Field | Type        | Null | Key | Default | Extra |
+		+-------+-------------+------+-----+---------+-------+
+		| id    | int(11)     | NO   | PRI | NULL    |       |
+		| name  | varchar(20) | YES  |     | NULL    |       |
+		+-------+-------------+------+-----+---------+-------+
+		添加主键约束成功（猜测如果已经重复会报错）
+	去除约束操作
+		alter table user4 drop primary key;
+		Query OK, 0 rows affected (0.10 sec)
+		Records: 0  Duplicates: 0  Warnings: 0
+	
+		mysql> desc user4;
+		+-------+-------------+------+-----+---------+-------+
+		| Field | Type        | Null | Key | Default | Extra |
+		+-------+-------------+------+-----+---------+-------+
+		| id    | int(11)     | NO   |     | NULL    |       |
+		| name  | varchar(20) | YES  |     | NULL    |       |
+		+-------+-------------+------+-----+---------+-------+
+		2 rows in set (0.00 sec)
+	修改操作：可以添加或删除约束
+		 alter table user4 modify id int primary key;
+		Query OK, 0 rows affected (0.05 sec)
+		Records: 0  Duplicates: 0  Warnings: 0
+	
+		mysql> desc user4;
+		+-------+-------------+------+-----+---------+-------+
+		| Field | Type        | Null | Key | Default | Extra |
+		+-------+-------------+------+-----+---------+-------+
+		| id    | int(11)     | NO   | PRI | NULL    |       |
+		| name  | varchar(20) | YES  |     | NULL    |       |
+		+-------+-------------+------+-----+---------+-------+
+	
+
+小结    1： 建表的时候就可以添加约束
+	2： 可以使用alter ... add ... 添加约束
+	    alter ... drop ... 去除约束
+	    alter ... modify ... 修改约束
+
+
+
+
+
+
+
