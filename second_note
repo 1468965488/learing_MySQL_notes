@@ -1,0 +1,91 @@
+数据库设计的三大范式
+
+第一范式
+	1NF
+	数据表中所有字段都是不可分割的原子值
+		select * from student2;
+		+----+---------+----------------------------+
+		| id | name    | address                    |
+		+----+---------+----------------------------+
+		|  1 | hanser  | xiamen province angel road |
+		|  2 | yousa   | chengdu province bird road |
+		|  3 | marblue | chengdu province girl road |
+		+----+---------+----------------------------+
+	像这种表就不满足第一范式
+	因为地址可以还可以详细拆分
+		select * from student3;
+		+----+---------+----------+------------+
+		| id | name    | province | road       |
+		+----+---------+----------+------------+
+		|  1 | hanser  | xiamen   | angel      |
+		|  2 | yousa   | chengdu  | bird       |
+		|  3 | marblue | xiamen   | girlfriend |
+		+----+---------+----------+------------+
+	拆分之后信息更加详细 如果我要统计厦门居住的人数，就很方便
+	对应的，如果我要取出完整的地址，第一范式的话我还要拼接，就显得和很麻烦
+	各有好处与缺点，实际应用时应选择适当的范式
+
+
+第二范式
+	2NF
+	满足第一范式的前提下， 第二范式要求，除主建的每一列都必须完全依赖主键
+	如果出现不完全依赖，只能发生在联合主键的情况下
+
+	mysql> create table myorder(
+	    -> product_id int,
+	    -> custom_id int,
+	    -> product_name varchar(20),
+	    -> custom_name varchar(20),
+	    -> primary key(product_id, custom_id)
+	    -> );
+	Query OK, 0 rows affected (0.03 sec)
+	上述表不满足第二范式的设计
+	出现问题： 除主键以外的其它列，只依赖与主键的部分字段
+	拆表
+	mysql> create table myorder(
+	    -> product_id int,
+	    -> custom_id int,
+	    -> order)id int primary key
+	    -> );
+
+	mysql> create table product(
+	    -> id int primary key,
+	    -> name varchar(20)
+	    -> );	
+
+	mysql> create table custom(
+	    -> id int primary key,
+	    -> name varchar(20)
+	    -> );	
+
+
+		拆分完之后满足第二范式的设计
+		除开主键外的其他列完全依赖于主键
+
+第三范式： 
+	3NF
+	必须满足第二范式，除开主键列的其他列不能有传递依赖
+	目标是确保每列都和主键列直接相关,而不是间接相关，阻止关系冗余
+	mysql> create table myorder(
+	    -> product_id int,
+	    -> custom_id int,
+	    -> order)id int primary key,
+	    -> custom_phone vatvhar(15)
+	    -> );
+	
+	这个客户电话如果可以通过客户id找到，客户id可以通过主键找到，关系冗余
+	应该把电话放在客户表里
+	mysql> create table custom(
+	    -> id int primary key,
+	    -> name varchar(20),
+	    -> custom_phone varchar(20)
+	    -> );	
+
+
+
+
+
+
+
+
+
