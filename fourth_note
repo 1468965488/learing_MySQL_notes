@@ -1,0 +1,765 @@
+--mysql 查询练习
+36： 查询student中最大最小的额s_birthday日期值
+
+mysql> select max(s_birthday) from student;
++---------------------+
+| max(s_birthday)     |
++---------------------+
+| 1999-08-29 00:00:00 |
++---------------------+
+1 row in set (0.00 sec)
+
+猜测成功
+同理最小也是一样的用法
+
+mysql> select s_birthday from student order by s_birthday limit 0, 1;
++---------------------+
+| s_birthday          |
++---------------------+
+| 1997-03-21 00:00:00 |
++---------------------+
+1 row in set (0.00 sec)
+
+或者我们可以先排序然后取第一个
+
+37： 以班号和年龄从大到小的顺序查询student表中的全部记录
+
+
+mysql> select * from student order by class desc, s_birthday desc;
++-------+--------+-------+---------------------+-------+
+| s_num | s_name | s_sex | s_birthday          | class |
++-------+--------+-------+---------------------+-------+
+| 110   | 朱广辉 | 男    | 1998-02-19 00:00:00 | 95038 |
+| 104   | 刘奕鑫 | 男    | 1999-08-29 00:00:00 | 95033 |
+| 103   | 赵国顺 | 男    | 1998-06-22 00:00:00 | 95033 |
+| 108   | 刘清   | 男    | 1998-06-10 00:00:00 | 95033 |
+| 101   | 薛勇   | 男    | 1997-09-01 00:00:00 | 95033 |
+| 106   | 王进兴 | 男    | 1999-07-30 00:00:00 | 95031 |
+| 105   | 赵建威 | 男    | 1999-04-29 00:00:00 | 95031 |
+| 109   | 王宝春 | 男    | 1998-10-10 00:00:00 | 95031 |
+| 107   | 张康情 | 男    | 1998-02-10 00:00:00 | 95031 |
+| 102   | 王琪   | 女    | 1997-03-21 00:00:00 | 95031 |
++-------+--------+-------+---------------------+-------+
+
+
+38： 查询男教师的课程
+盲猜套娃可以实现
+mysql> select * from course where t_num in
+    -> (select t_num from teacher where
+    -> t_sex = '男');
++-------+----------+-------+
+| c_num | c_name   | t_num |
++-------+----------+-------+
+| 3-245 | 操作系统 | 804   |
+| 3-166 | 数字电路 | 856   |
++-------+----------+-------+
+
+
+
+39： 查询最高分的同学的s_num, c_num , defree列
+mysql> select max(defree) from score;
++-------------+
+| max(defree) |
++-------------+
+|          99 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql> select * from score where
+    -> defree = (select max(defree) from score);
++-------+-------+--------+
+| s_num | c_num | defree |
++-------+-------+--------+
+| 109   | 3-105 |     99 |
++-------+-------+--------+
+
+笔记是给我自己看的，这个太简单我觉得不需要解释
+
+
+40： 查询和薛勇同性别的所有同学
+盲猜一手套娃
+
+mysql> select * from student where
+    -> s_sex in (select s_sex from student where
+    -> s_name = '薛勇');
++-------+--------+-------+---------------------+-------+
+| s_num | s_name | s_sex | s_birthday          | class |
++-------+--------+-------+---------------------+-------+
+| 101   | 薛勇   | 男    | 1997-09-01 00:00:00 | 95033 |
+| 103   | 赵国顺 | 男    | 1998-06-22 00:00:00 | 95033 |
+| 104   | 刘奕鑫 | 男    | 1999-08-29 00:00:00 | 95033 |
+| 105   | 赵建威 | 男    | 1999-04-29 00:00:00 | 95031 |
+| 106   | 王进兴 | 男    | 1999-07-30 00:00:00 | 95031 |
+| 107   | 张康情 | 男    | 1998-02-10 00:00:00 | 95031 |
+| 108   | 刘清   | 男    | 1998-06-10 00:00:00 | 95033 |
+| 109   | 王宝春 | 男    | 1998-10-10 00:00:00 | 95031 |
+| 110   | 朱广辉 | 男    | 1998-02-19 00:00:00 | 95038 |
++-------+--------+-------+---------------------+-------+
+
+成功搜索出来， 
+
+41： 查询和薛勇同性别并且和他同伴的同学
+
+比起上一条加一个and就可以了
+mysql> select * from student where
+    -> s_sex = (select s_sex from student where
+    -> s_name = '薛勇') and
+    -> class = (select class from student where s_name = '薛勇');
++-------+--------+-------+---------------------+-------+
+| s_num | s_name | s_sex | s_birthday          | class |
++-------+--------+-------+---------------------+-------+
+| 101   | 薛勇   | 男    | 1997-09-01 00:00:00 | 95033 |
+| 103   | 赵国顺 | 男    | 1998-06-22 00:00:00 | 95033 |
+| 104   | 刘奕鑫 | 男    | 1999-08-29 00:00:00 | 95033 |
+| 108   | 刘清   | 男    | 1998-06-10 00:00:00 | 95033 |
++-------+--------+-------+---------------------+-------+
+
+
+轻松实现
+
+
+42： 查询所有选修计算机导论的课程的男同学
+
+套娃子查询就可以实现
+
+
+mysql> select * from score where
+    -> c_num = (select c_num from course where c_name = '计算机导论')
+    -> and s_num in (select s_num from student where s_sex = '男');
++-------+-------+--------+
+| s_num | c_num | defree |
++-------+-------+--------+
+| 101   | 3-105 |     69 |
+| 103   | 3-105 |     82 |
+| 104   | 3-105 |     89 |
+| 105   | 3-105 |     75 |
+| 109   | 3-105 |     99 |
++-------+-------+--------+
+
+
+43： 假设我们现在创建了一个grade表
+mysql> create table grade(
+    -> low int(3),
+    -> mid int(3),
+    -> grade char(1));
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> insert into grade values(90, 100, 'A');
+Query OK, 1 row affected (0.35 sec)
+
+mysql> insert into grade values(80, 89, 'B');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into grade values(70, 79, 'C');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into grade values(60, 69, 'D');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into grade values(0, 59, 'E');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from grade;
++------+------+-------+
+| low  | mid  | grade |
++------+------+-------+
+|   90 |  100 | A     |
+|   80 |   89 | B     |
+|   70 |   79 | C     |
+|   60 |   69 | D     |
+|    0 |   59 | E     |
++------+------+-------+
+
+
+然后查询所有同学的s_num, c_num, grade;
+
+
+
+mysql> select s_num, c_num, grade from score, grade
+    -> where defree between low and mid;
++-------+-------+-------+
+| s_num | c_num | grade |
++-------+-------+-------+
+| 101   | 3-105 | D     |
+| 102   | 3-105 | C     |
+| 103   | 3-105 | B     |
+| 103   | 3-166 | A     |
+| 103   | 3-245 | B     |
+| 104   | 3-105 | B     |
+| 105   | 3-105 | C     |
+| 105   | 3-166 | D     |
+| 105   | 3-245 | C     |
+| 109   | 3-105 | A     |
+| 109   | 3-166 | C     |
+| 109   | 3-245 | D     |
++-------+-------+-------+
+
+
+
+--musql的四种链接查询
+
+内连接
+	inner join 或者join
+
+外链接
+	左连接： left join或者left outer join
+	
+	右连接： right join或者right outer join
+
+	完全外连接： full join 或者full outer join
+
+
+我们先创建两个表
+mysql> create table person(
+    -> id int,
+    -> name varchar(20),
+    -> card_id int);
+Query OK, 0 rows affected (0.37 sec)
+
+mysql> create table card(
+    -> id int,
+    -> name varchar(20));
+Query OK, 0 rows affected (0.04 sec)
+
+
+然后插入数据
+
+
+mysql> insert into card values(1, '饭卡');
+Query OK, 1 row affected (0.34 sec)
+
+mysql> insert into card values(2, '建行卡');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into card values(3, '农行卡');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into card values(4, '工商卡');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into card values(5, '邮政卡');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into person values(1, '张三', 1);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into person values(2, '李四', 3);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into person values(3, '王五', 6);
+Query OK, 1 row affected (0.00 sec)
+
+
+这里并没有创建外键
+
+
+--inner join查询
+
+mysql> select * from person  inner join card on person.card_id = card.id;
++------+------+---------+------+--------+
+| id   | name | card_id | id   | name   |
++------+------+---------+------+--------+
+|    1 | 张三 |       1 |    1 | 饭卡   |
+|    2 | 李四 |       3 |    3 | 农行卡 |
++------+------+---------+------+--------+
+
+这两个表进行一个连接查询，这两个表有个相等关系就是 card_id = id
+
+内联查询就是两张表中的数据通过某个字段相等查询出相关记录数据
+
+mysql> select * from person join card on person.card_id = card.id;
++------+------+---------+------+--------+
+| id   | name | card_id | id   | name   |
++------+------+---------+------+--------+
+|    1 | 张三 |       1 |    1 | 饭卡   |
+|    2 | 李四 |       3 |    3 | 农行卡 |
++------+------+---------+------+--------+
+
+把inner去掉其实也可以
+inner join 也叫内连接
+
+
+left join  左外连接
+
+mysql> select * from person left join card on person.card_id = card.id;
++------+------+---------+------+--------+
+| id   | name | card_id | id   | name   |
++------+------+---------+------+--------+
+|    1 | 张三 |       1 |    1 | 饭卡   |
+|    2 | 李四 |       3 |    3 | 农行卡 |
+|    3 | 王五 |       6 | NULL | NULL   |
++------+------+---------+------+--------+
+左边全是person表  右边如果有就查询 没有就填null
+left join 也叫 left outer join
+
+right join 右外连接
+
+mysql> select * from person right join card on person.card_id = card.id;
++------+------+---------+------+--------+
+| id   | name | card_id | id   | name   |
++------+------+---------+------+--------+
+|    1 | 张三 |       1 |    1 | 饭卡   |
+|    2 | 李四 |       3 |    3 | 农行卡 |
+| NULL | NULL |    NULL |    2 | 建行卡 |
+| NULL | NULL |    NULL |    4 | 工商卡 |
+| NULL | NULL |    NULL |    5 | 邮政卡 |
++------+------+---------+------+--------+
+
+和left join刚好完全相反
+会把右边所有数据取出来，
+左边有相等就取出来  没有就补null
+
+right join 也叫rught outer join
+效果一样
+
+full join 外全连接
+
+mysql不支持 full join
+可以用其他方法实现full join
+
+
+mysql> select * from person left join card on person.card_id = card.id
+    -> union
+    -> select * from person right join card on person.card_id = card.id
+    -> ;
++------+------+---------+------+--------+
+| id   | name | card_id | id   | name   |
++------+------+---------+------+--------+
+|    1 | 张三 |       1 |    1 | 饭卡   |
+|    2 | 李四 |       3 |    3 | 农行卡 |
+|    3 | 王五 |       6 | NULL | NULL   |
+| NULL | NULL |    NULL |    2 | 建行卡 |
+| NULL | NULL |    NULL |    4 | 工商卡 |
+| NULL | NULL |    NULL |    5 | 邮政卡 |
++------+------+---------+------+--------+
+
+mysql 事务
+ mysql中 事务是一个最小的不可分割的工作单元， 事务能保证一个业务的完整性
+
+比如我们银行转账
+	a-> -100
+	update user set money = money - 100 where name='a';
+	b-> +100
+	update user set money = money + 100 where name='b';
+
+	在实际的程序中，如果一条执行成功而另一条不成功
+	数据就会出现前后不一致
+	
+	多条mysql语句， 可能会有同时成功的要求， 要么就同时失败
+	这就是事务要来解决的问题
+
+mysql中如何控制事务
+
+1 mysql中默认是开启事务的
+
+mysql> select @@autocommit;
++--------------+
+| @@autocommit |
++--------------+
+|            1 |
++--------------+
+
+默认事务开启的作用是 当我们取执行一个sql语句的时候
+	效果会立即体现出来， 并且不能回滚
+
+我们先创建一个表
+mysql> create table user(
+    -> id int primary key,
+    -> name varchar(20),
+    -> money int);
+Query OK, 0 rows affected (0.42 sec)
+
+mysql> insert into user values(
+    -> 1, 'a', 1000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
++----+------+-------+
+
+这么我们
+就往表里插入了一个数据， 并且不能回滚
+rollback；
+
+mysql> rollback;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select * from user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
++----+------+-------+
+
+设置mysql自动提交为flase之后
+
+mysql> set @@autocommit=0;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select @@autocommit;
++--------------+
+| @@autocommit |
++--------------+
+|            0 |
++--------------+
+1 row in set (0.00 sec)
+
+我们再尝试回滚操作
+
+mysql> insert into user values(
+    -> 2, 'a', 1000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
+|  2 | a    |  1000 |
++----+------+-------+
+2 rows in set (0.00 sec)
+
+mysql> rollback;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select * from user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |  1000 |
++----+------+-------+
+可以看到成功回滚， 上边其实没有提交所以才能回滚
+commit可以手动提交， 提交之后就不可撤销了
+
+
+然后我们把自动提交先还原回去
+但如果我们还想使用回滚功能我们可以这样
+begin 或者 start transcation
+
+我们可以先begin
+mysql> begin;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select * from user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |   900 |
++----+------+-------+
+1 row in set (0.00 sec)
+
+mysql> update user  set money=money-100 where name = 'a';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |   800 |
++----+------+-------+
+1 row in set (0.00 sec)
+
+mysql> rollback;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select * from user;
++----+------+-------+
+| id | name | money |
++----+------+-------+
+|  1 | a    |   900 |
++----+------+-------+
+
+我们可以看到成功回滚， 成功手动开启事务
+确认事务无误之后可以通过commit语句手动提交  提交之后不可以回滚
+
+
+事物的四大特征
+A 原子性 事务是2最小的单位， 不可再分割
+
+
+C 一致性 事务要求， 同一事务中的sql语句必须保证同时成功或者同时失败
+
+
+I 隔离性 事务1 和事务2 之间是具有隔离性的
+
+
+D 持久性 事务一旦结束就不可返回(commit, rollback)
+
+
+事务开启：
+	1： 修改默认提交 即set @@autocommit=0
+
+	2:  begin 开启
+
+	3： start transaction
+
+事务提交
+	commit
+事务回滚
+	rollback
+
+
+事务的隔离性
+
+主要分为四种隔离性
+1： read uncommited
+	读未提交的
+	如果你有事务a和事务b
+	a事务对数据库进行操作， 在操作的过程中， 事务没有被提交 但是b可以看见a操作的结果
+
+	如何查看数据库的隔离级别、
+	mysql： 8.0版本
+	
+	系统级别的
+	mysql> select @@global.transaction_isolation;
+	+--------------------------------+
+	| @@global.transaction_isolation |
+	+--------------------------------+
+	| REPEATABLE-READ                |
+	+--------------------------------+	
+	会话级别的
+	 mysql> select @@transaction_isolation;
+	+-------------------------+
+	| @@transaction_isolation |
+	+-------------------------+
+	| REPEATABLE-READ         |
+	+-------------------------+
+	mysql  5.x版本
+	
+	mysql> select @@global.tx_isolation;
+	+-----------------------+
+	| @@global.tx_isolation |
+	+-----------------------+
+	| REPEATABLE-READ       |
+	+-----------------------+
+
+	mysql> select @@tx_isolation;
+	+-----------------+
+	| @@tx_isolation  |
+	+-----------------+
+	| REPEATABLE-READ |
+	+-----------------+
+
+
+	如何修改隔离级别
+
+mysql> set global transaction isolation level read uncommitted;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select @@global.transaction_isolation;
++--------------------------------+
+| @@global.transaction_isolation |
++--------------------------------+
+| READ-UNCOMMITTED               |
++--------------------------------+
+1 row in set, 1 warning (0.00 sec)
+成功修改 
+	我也不知道为什么我的两个都可以用， 
+
+然后小明在淘宝店买鞋 800 元
+	小明->成都
+	淘宝店->广州 
+
+mysql> start transaction;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> update user set money = money-80 where name='小明';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> update user set money = money+80 where name='淘宝店';
+Query OK, 1 row affected (0.00 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from user;
++----+--------+-------+
+| id | name   | money |
++----+--------+-------+
+|  1 | a      |   900 |
+|  3 | 小明   |   920 |
+|  4 | 淘宝店 |  1080 |
++----+--------+-------+
+然后小明发现转账成功
+
+mysql> use bank;
+Database changed
+mysql> select * from user;
++----+--------+-------+
+| id | name   | money |
++----+--------+-------+
+|  1 | a      |   900 |
+|  3 | 小明   |   920 |
+|  4 | 淘宝店 |  1080 |
++----+--------+-------+
+
+然后淘宝店打开另一个mysql发现成功收到转账
+然后发货，晚上出去撸串，整了1080元 然后结账时发现钱不够
+
+因为在结账之前小明rollback了， 然后小明钱回来了
+
+然后淘宝店去查钱
+mysql> select * from user;
++----+--------+-------+
+| id | name   | money |
++----+--------+-------+
+|  1 | a      |   900 |
+|  3 | 小明   |  1000 |
+|  4 | 淘宝店 |  1000 |
++----+--------+-------+
+发现变成了1000 程序员真方便
+
+如果两个不同的地方都在不同操作， 如果事务a的事务开启之后， 他的数据可以被其他食物读取到
+这样就会出现读取到未提交的数据（脏读）
+--脏读 一个事务读到了另一个事务未提交的数据， 
+分明显程序开发不允许脏读出现的
+
+2:  read commited
+	读已提交的
+首先我们修改隔离性未read commited
+mysql> set global transaction isolation level read committed;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select @@global.transaction_isolation;
++--------------------------------+
+| @@global.transaction_isolation |
++--------------------------------+
+| READ-COMMITTED                 |
++--------------------------------+
+1 row in set (0.00 sec)
+
+
+小张： 银行的会计
+mysql> select * from user;
++----+--------+-------+
+| id | name   | money |
++----+--------+-------+
+|  1 | a      |   900 |
+|  3 | 小明   |  1000 |
+|  4 | 淘宝店 |  1000 |
++----+--------+-------+
+小张出去上厕所去了，，，抽烟
+
+小王开了另一台电脑创建了一个账户
+mysql> use bank;
+Database changed
+mysql> start transaction;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> insert into user values(5, '小王', 1000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> commit;
+Query OK, 0 rows affected (0.00 sec)
+
+然后小张抽完烟之后回来了 然后小张要计算平均数se
+
+mysql> select avg(money) from user ;
++------------+
+| avg(money) |
++------------+
+|   975.0000 |
++------------+
+
+然后这个数字变得很奇怪 就对不上
+
+
+其实这时候已经把小王的读取进去了， 但是前面和后边读的数据不一样
+虽然我只能读到已经提交的数据， 但还是会出现问题， 就是读取同一个表的数据发现前后不一致
+这种现象就是不可重复读现象
+
+
+
+3:  repeatable read
+	可以重复读
+	然后我们先修改隔离级别
+
+	
+mysql> set global transaction isolation level repeatable read;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select @@global.transaction_isolation;
++--------------------------------+
+| @@global.transaction_isolation |
++--------------------------------+
+| REPEATABLE-READ                |
++--------------------------------+
+
+修改成功
+
+
+这种隔离性会造成幻读
+事务a和事务b同时操作一张表
+事务a提交之后 b不能读到 但是它已经存在了
+就可能会出现问题
+
+
+
+4:  serializable
+	串行化
+
+可以这样修改隔离性为串行化
+mysql> set global transaction isolation level serializable;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> select @@global.transaction_isolation;
++--------------------------------+
+| @@global.transaction_isolation |
++--------------------------------+
+| SERIALIZABLE                   |
++--------------------------------+
+
+
+张全蛋
+
+王尼玛 两人同时进行事务
+
+然后张全蛋
+mysql> insert into user values(7, '全蛋', 1000);
+Query OK, 1 row affected (0.00 sec)
+开了一个账户
+然后commit提交了
+
+然后王尼玛一查询发现全蛋已经在了
+mysql> select * from user;
++----+--------+-------+
+| id | name   | money |
++----+--------+-------+
+|  1 | a      |   900 |
+|  3 | 小明   |  1000 |
+|  4 | 淘宝店 |  1000 |
+|  5 | 小王   |  1000 |
+|  7 | 全蛋   |  1000 |
++----+--------+-------+
+
+然后他插入数据二花
+mysql> insert into user values(8, '二花', 1000);
+Query OK, 1 row affected (0.00 sec)
+
+然后张全蛋又打开电脑想再创建一个账户
+
+ insert into user values(10, '全蛋', 1000);
+输入完之后发现卡住了
+
+这是因为王尼玛那边没有commit
+串行卡住了， 过一会就会超时了
+
+如果未超时时王尼玛提交了，那张全蛋那边也会瞬间就提交成功
+
+当user表被另外事务操作的时候， 其他事务不可进行写操作， 
+进入排队状态， 直道另一边操作结束之后，张全蛋的操作才会被执行（未超时前提下）
+
+
+一旦王尼玛这边commit 张全蛋那一边的语句马上就会执行成共
+
+串行化带来的问题是 性能特差
+
+性能的话
+READ-UNCOMMITTED > READ-COMMITTED >REPEATABLE-READ > SERIALABLE;
+
+隔离性能越高， 性能越差
+mysql默认隔离级别是 REPEATABLE-READ
+
